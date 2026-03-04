@@ -171,7 +171,7 @@
 
   <!-- Titre -->
   <div style="text-align:center; padding: 0 16px 20px;">
-    <p style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.6); text-transform:uppercase; letter-spacing:0.14em; margin-bottom:4px; font-family:-apple-system,sans-serif;">Outils Tréso</p>
+    <p style="font-size:14px; font-weight:700; color:rgba(255,255,255,0.6); text-transform:uppercase; letter-spacing:0.14em; margin-bottom:4px; font-family:-apple-system,sans-serif;">Outils Tréso</p>
     <h1 style="font-family:'Finlandica', sans-serif; font-style:italic; font-weight:600; font-size:34px; color:#ffffff; line-height:1.1; letter-spacing:0.03em; text-transform:uppercase;">Pour que l'État te rembourse jusqu'à 66 % de ta cotisation OCF</h1>
   </div>
 
@@ -248,7 +248,7 @@
         <span class="unit">€</span>
       </div>
     </div>
-    <button onclick="calculate()">Calculer ma cotisation optimale</button>
+    <button onclick="calculate()" style="margin-top:10px;">Calculer ma cotisation optimale</button>
   </div>
 
   <!-- Résultats -->
@@ -293,6 +293,60 @@
         </div>
       </div>
       <p class="disclaimer">Simulation indicative — Barème 2026 sur revenus 2025.<br>Consulte un conseiller fiscal pour validation.</p>
+    </div>
+
+    <!-- Bloc couple -->
+    <div id="bloc-couple" class="card" style="display:none; background:#fff8f8; border:1px solid #f0c0c0;">
+        <p class="section-title">Répartition pour un foyer à deux militants</p>
+        <p style="font-size:12px; color:#666; margin-bottom:14px;">En supposant que vous avez le même revenu, voici la cotisation de chacun :</p>
+        <div style="display:flex; gap:10px;">
+          <div style="flex:1; background:#fff; border:1px solid #e0e0e0; border-radius:8px; padding:14px; text-align:center;">
+            <p style="font-size:11px; color:#9ca3af; margin-bottom:4px;">Ta cotisation</p>
+            <strong id="r-couple-part" style="font-size:20px; color:#9E0000;"></strong>
+          </div>
+          <div style="flex:1; background:#fff; border:1px solid #e0e0e0; border-radius:8px; padding:14px; text-align:center;">
+            <p style="font-size:11px; color:#9ca3af; margin-bottom:4px;">Cotisation du/de la conjoint(e)</p>
+            <strong id="r-couple-part2" style="font-size:20px; color:#9E0000;"></strong>
+          </div>
+        </div>
+        <p style="font-size:11px; color:#9ca3af; margin-top:10px; line-height:1.5;">Chaque conjoint verse sa part directement à l'OCF. Chacun reçoit son propre reçu fiscal et déclare sa cotisation sur sa propre déclaration de revenus.</p>
+    </div>
+
+    <!-- Comment faire ? -->
+    <div class="card" style="padding:0; overflow:hidden;">
+      <button onclick="toggleComment()" id="comment-btn" style="
+        width:100%; background:none; border:none; padding:16px 22px;
+        display:flex; justify-content:space-between; align-items:center;
+        cursor:pointer; text-align:left; border-radius:8px;
+      ">
+        <span style="font-size:13px; font-weight:700; color:#9E0000;">📋 Comment faire concrètement ?</span>
+        <span id="comment-icon" style="font-size:18px; color:#9E0000; transition:transform 0.3s;">▾</span>
+      </button>
+      <div id="comment-content" style="max-height:0; overflow:hidden; transition:max-height 0.4s ease; padding:0 22px;">
+        <div style="padding-bottom:20px; display:flex; flex-direction:column; gap:16px;">
+
+          <div>
+            <p style="font-size:12px; font-weight:700; color:#9E0000; margin-bottom:4px;">① Verser ta cotisation</p>
+            <p style="font-size:12px; color:#4b5563; line-height:1.6;">Plus tôt dans l'année tu cotises, mieux c'est — pour toi comme pour l'OCF. Si le montant est important, n'hésite pas à échelonner tes versements sur l'année plutôt que de tout payer d'un coup. L'essentiel est que tout soit versé avant le 31 décembre pour que ça compte sur l'année en cours.</p>
+          </div>
+
+          <div>
+            <p style="font-size:12px; font-weight:700; color:#9E0000; margin-bottom:4px;">② Recevoir ton reçu fiscal</p>
+            <p style="font-size:12px; color:#4b5563; line-height:1.6;">L'OCF transmet la liste des cotisants à la CNCCFP au plus tard le 15 avril de l'année suivante. C'est seulement après que tu reçois ton reçu fiscal officiel — compte donc le recevoir dans le courant du premier trimestre N+1, parfois jusqu'en avril.</p>
+          </div>
+
+          <div>
+            <p style="font-size:12px; font-weight:700; color:#9E0000; margin-bottom:4px;">③ Déclarer ta cotisation</p>
+            <p style="font-size:12px; color:#4b5563; line-height:1.6;">Lors de ta déclaration de revenus sur <strong>impots.gouv.fr</strong> (avril–juin N+1), saisis le montant total versé dans la <strong>case 7UF</strong> du formulaire 2042 RICI. L'État calcule automatiquement ta réduction de 66 %.</p>
+          </div>
+
+          <div>
+            <p style="font-size:12px; font-weight:700; color:#9E0000; margin-bottom:4px;">④ Être remboursé</p>
+            <p style="font-size:12px; color:#4b5563; line-height:1.6;">La réduction vient en déduction directe de ton impôt à payer. Si tu es mensualisé, tes prélèvements sont ajustés à l'été. Attention : si ta réduction dépasse ton impôt, le surplus n'est pas remboursé — c'est pour ça que le simulateur calcule le montant optimal.</p>
+          </div>
+
+        </div>
+      </div>
     </div>
 
   </div>
@@ -438,8 +492,31 @@ function calculate() {
   else if (donAnnule < don3pct) { warn.style.display = "block"; warn.textContent = "⚠️ Cotisation plafonnée par l'annulation totale de ton impôt"; }
   else warn.style.display = "none";
 
+  // Bloc couple
+  const blocCouple = document.getElementById("bloc-couple");
+  if (statut === 'couple') {
+    blocCouple.style.display = "block";
+    document.getElementById("r-couple-part").textContent = fmt(donAvance / 2);
+    document.getElementById("r-couple-part2").textContent = fmt(donAvance / 2);
+  } else {
+    blocCouple.style.display = "none";
+  }
+
   document.getElementById("results").style.display = "block";
   document.getElementById("results").scrollIntoView({ behavior: "smooth" });
+}
+
+function toggleComment() {
+  const content = document.getElementById("comment-content");
+  const icon = document.getElementById("comment-icon");
+  const isOpen = content.style.maxHeight && content.style.maxHeight !== "0px";
+  if (isOpen) {
+    content.style.maxHeight = "0";
+    icon.style.transform = "rotate(0deg)";
+  } else {
+    content.style.maxHeight = content.scrollHeight + "px";
+    icon.style.transform = "rotate(180deg)";
+  }
 }
 </script>
 </body>
