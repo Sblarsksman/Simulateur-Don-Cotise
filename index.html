@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Simulateur de don politique</title>
+  <title>Simulateur de cotisation politique</title>
   <link href="https://fonts.googleapis.com/css2?family=Finlandica:ital,wght@1,600&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -172,20 +172,36 @@
   <!-- Titre -->
   <div style="text-align:center; padding: 0 16px 20px;">
     <p style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.6); text-transform:uppercase; letter-spacing:0.14em; margin-bottom:4px; font-family:-apple-system,sans-serif;">Outils Tréso</p>
-    <h1 style="font-family:'Finlandica', sans-serif; font-style:italic; font-weight:600; font-size:34px; color:#ffffff; line-height:1.1; letter-spacing:0.03em; text-transform:uppercase;">Quand tu donnes à l'OCF,<br>l'État t'en rend les 2/3</h1>
+    <h1 style="font-family:'Finlandica', sans-serif; font-style:italic; font-weight:600; font-size:34px; color:#ffffff; line-height:1.1; letter-spacing:0.03em; text-transform:uppercase;">Pour que l'État te rembourse jusqu'à 66 % de ta cotisation OCF</h1>
   </div>
 
-  <!-- Présentation -->
-  <div class="card" style="margin-bottom:14px;">
-    <p style="font-size:13px; font-weight:700; color:#9E0000; margin-bottom:8px;">L'OCF a besoin de toi.</p>
-    <p style="font-size:13px; color:#4b5563; line-height:1.6; margin-bottom:14px;">Militante et indépendante, l'Organisation Communiste de France ne vit que de ses adhérents. Pas de subventions patronales, pas de financements opaques&nbsp;— uniquement les cotisations de celles et ceux qui construisent avec nous. Pour continuer à exister et à se développer, il est essentiel que chaque adhérent maximise sa contribution.</p>
-    <p style="font-size:13px; font-weight:700; color:#9E0000; margin-bottom:8px;">Bonne nouvelle&nbsp;: l'État t'aide à le faire.</p>
-    <p style="font-size:13px; color:#4b5563; line-height:1.6; margin-bottom:14px;">L'OCF bénéficie de l'agrément CNCCFP, ce qui te permet de déduire 66&nbsp;% de ton don de ton impôt sur le revenu. Concrètement, si tu verses 100&nbsp;€, l'État t'en rembourse 66&nbsp;€ sur ta déclaration de l'année suivante&nbsp;— ton don ne te coûte réellement que 34&nbsp;€. Ce remboursement intervient en N+1, lors de ta déclaration de revenus.</p>
-    <p style="font-size:13px; color:#4b5563; line-height:1.6;"><strong style="color:#333;">Cet outil calcule le don optimal selon ta situation fiscale</strong>&nbsp;— le montant que tu peux avancer tout en limitant ton coût réel. Conformément à la tradition des partis communistes, la recommandation est plafonnée à 1&nbsp;% de ton revenu net&nbsp;: c'est la base. Mais si l'envie te prend de donner davantage, libre à toi&nbsp;— cet argent ne sera pas perdu. Le résultat affiché est purement indicatif et ne constitue aucune obligation.</p>
+  <!-- Présentation (accordéon) -->
+  <div class="card" style="margin-bottom:14px; padding:0; overflow:hidden;">
+    <button onclick="toggleAccordeon()" id="accordeon-btn" style="
+      width:100%; background:none; border:none; padding:16px 22px;
+      display:flex; justify-content:space-between; align-items:center;
+      cursor:pointer; text-align:left; border-radius:8px;
+    ">
+      <span style="font-size:13px; font-weight:700; color:#9E0000;">À quoi sert cet outil ? (Clique ici)</span>
+      <span id="accordeon-icon" style="font-size:18px; color:#9E0000; transition:transform 0.3s;">▾</span>
+    </button>
+    <div id="accordeon-content" style="
+      max-height:0; overflow:hidden; transition:max-height 0.4s ease, padding 0.3s ease;
+      padding:0 22px;
+    ">
+      <div style="padding-bottom:18px;">
+        <p style="font-size:13px; font-weight:700; color:#9E0000; margin-bottom:8px;">L'OCF a besoin de toi.</p>
+        <p style="font-size:13px; color:#4b5563; line-height:1.6; margin-bottom:14px;">Militante et indépendante, l'Organisation Communiste de France ne vit que de ses adhérents. Pas de subventions patronales, pas de financements opaques&nbsp;— uniquement les cotisations de celles et ceux qui construisent avec nous. Pour continuer à exister et à se développer, il est essentiel que chaque adhérent maximise sa cotisation.</p>
+        <p style="font-size:13px; font-weight:700; color:#9E0000; margin-bottom:8px;">Bonne nouvelle&nbsp;: l'État t'aide à le faire.</p>
+        <p style="font-size:13px; color:#4b5563; line-height:1.6; margin-bottom:14px;">L'OCF bénéficie de l'agrément CNCCFP, ce qui te permet de déduire 66&nbsp;% de ta cotisation de ton impôt sur le revenu. Concrètement, si tu cotises 100&nbsp;€, l'État t'en rembourse 66&nbsp;€ sur ta déclaration de l'année suivante&nbsp;— ta cotisation ne te coûte réellement que 34&nbsp;€. Ce remboursement intervient en N+1, lors de ta déclaration de revenus.</p>
+        <p style="font-size:13px; color:#4b5563; line-height:1.6;"><strong style="color:#333;">Cet outil calcule la cotisation optimale selon ta situation fiscale</strong>&nbsp;— le montant que tu peux avancer tout en limitant ton coût réel. Conformément à la tradition des partis communistes, la recommandation est plafonnée à 1&nbsp;% de ton revenu net&nbsp;: c'est la base. Mais si l'envie te prend de cotiser davantage, libre à toi&nbsp;— cet argent ne sera pas perdu. Le résultat affiché est purement indicatif et ne constitue aucune obligation.</p>
+      </div>
+    </div>
   </div>
 
   <!-- Formulaire -->
   <div class="card">
+    <p class="section-title">Calcule ta cotisation</p>
     <div class="field">
       <label>Revenu brut annuel <span>(avant abattement 10 %)</span></label>
       <div class="input-wrap">
@@ -213,7 +229,7 @@
         <span class="unit">€</span>
       </div>
     </div>
-    <button onclick="calculate()">Calculer mon don optimal</button>
+    <button onclick="calculate()">Calculer ma cotisation optimale</button>
   </div>
 
   <!-- Résultats -->
@@ -230,13 +246,13 @@
       <div class="row bold"><span class="row-label">Revenu net après impôt</span><span class="row-val" id="r-revNetApres"></span></div>
     </div>
 
-    <!-- Don -->
+    <!-- Cotisation -->
     <div class="card">
-      <p class="section-title">Ton don optimal</p>
+      <p class="section-title">Ta cotisation optimale</p>
       <div class="row"><span class="row-label">Objectif cotisation (1 % de ton revenu net)</span><span class="row-val" id="r-don1"></span></div>
-      <div class="row highlight"><span class="row-label">Don à avancer à l'OCF (jusqu'à 3 %)</span><span class="row-val" id="r-donAvance"></span></div>
+      <div class="row highlight"><span class="row-label">Cotisation à avancer à l'OCF (jusqu'à 3 %)</span><span class="row-val" id="r-donAvance"></span></div>
       <div id="warning-contrainte" class="warning" style="display:none"></div>
-      <div class="row sub"><span class="row-label">− Remboursement fiscal (66 % du don)</span><span class="row-val" id="r-reduction"></span></div>
+      <div class="row sub"><span class="row-label">− Remboursement fiscal (66 % de la cotisation)</span><span class="row-val" id="r-reduction"></span></div>
       <div class="row sub"><span class="row-label">Impôt restant après réduction</span><span class="row-val" id="r-impotRestant"></span></div>
     </div>
 
@@ -304,6 +320,20 @@ function parse(id) {
 
 function set(id, val) { document.getElementById(id).textContent = val; }
 
+function toggleAccordeon() {
+  const content = document.getElementById("accordeon-content");
+  const icon = document.getElementById("accordeon-icon");
+  const isOpen = content.style.maxHeight && content.style.maxHeight !== "0px";
+  if (isOpen) {
+    content.style.maxHeight = "0";
+    content.style.padding = "0 22px";
+    icon.style.transform = "rotate(0deg)";
+  } else {
+    content.style.maxHeight = content.scrollHeight + "px";
+    icon.style.transform = "rotate(180deg)";
+  }
+}
+
 function calculate() {
   const rev = parse("revenu");
   if (!rev || rev <= 0) { alert("Saisis un revenu valide."); return; }
@@ -349,8 +379,8 @@ function calculate() {
 
   // Contrainte
   const warn = document.getElementById("warning-contrainte");
-  if (donAvance >= 7499) { warn.style.display = "block"; warn.textContent = "⚠️ Don plafonné par le plafond légal de 7 500 €"; }
-  else if (donAnnule < don3pct) { warn.style.display = "block"; warn.textContent = "⚠️ Don plafonné par l'annulation totale de votre impôt"; }
+  if (donAvance >= 7499) { warn.style.display = "block"; warn.textContent = "⚠️ Cotisation plafonnée par le plafond légal de 7 500 €"; }
+  else if (donAnnule < don3pct) { warn.style.display = "block"; warn.textContent = "⚠️ Cotisation plafonnée par l'annulation totale de ton impôt"; }
   else warn.style.display = "none";
 
   document.getElementById("results").style.display = "block";
