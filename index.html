@@ -211,16 +211,35 @@
     </div>
     <div class="field">
       <label>Situation familiale</label>
-      <select id="situation">
-        <option value="1">Célibataire / Divorcé(e) / Veuf(ve) sans enfant (1 part)</option>
-        <option value="2">Couple marié ou pacsé sans enfant (2 parts)</option>
-        <option value="1.5">Célibataire avec 1 enfant (1,5 part)</option>
-        <option value="2">Célibataire avec 2 enfants (2 parts)</option>
-        <option value="3">Célibataire avec 3 enfants (3 parts)</option>
-        <option value="2.5">Couple avec 1 enfant (2,5 parts)</option>
-        <option value="3">Couple avec 2 enfants (3 parts)</option>
-        <option value="4">Couple avec 3 enfants (4 parts)</option>
-      </select>
+      <div style="display:flex; gap:8px; margin-bottom:12px;">
+        <button type="button" id="btn-seul" onclick="setStatut('seul')" style="
+          flex:1; padding:10px 6px; border-radius:6px; font-size:12px; font-weight:700;
+          border:2px solid #9E0000; background:#9E0000; color:#fff;
+          cursor:pointer; transition:all 0.2s; font-family:inherit;
+        ">Seul(e)</button>
+        <button type="button" id="btn-couple" onclick="setStatut('couple')" style="
+          flex:1; padding:10px 6px; border-radius:6px; font-size:12px; font-weight:700;
+          border:2px solid #e0e0e0; background:#fff; color:#666;
+          cursor:pointer; transition:all 0.2s; font-family:inherit;
+        ">Marié(e) / Pacsé(e)</button>
+      </div>
+      <label>Enfants à charge</label>
+      <div style="display:flex; align-items:center; border:1px solid #e0e0e0; border-radius:6px; overflow:hidden; height:42px;">
+        <button type="button" onclick="changeEnfants(-1)" style="
+          width:44px; height:100%; border:none; background:#f9f9f9;
+          font-size:22px; color:#9E0000; cursor:pointer; font-weight:700;
+          border-right:1px solid #e0e0e0; transition:background 0.15s;
+        ">−</button>
+        <span id="enfants-display" style="
+          flex:1; text-align:center; font-size:15px; font-weight:700; color:#333;
+        ">0</span>
+        <button type="button" onclick="changeEnfants(1)" style="
+          width:44px; height:100%; border:none; background:#f9f9f9;
+          font-size:22px; color:#9E0000; cursor:pointer; font-weight:700;
+          border-left:1px solid #e0e0e0; transition:background 0.15s;
+        ">+</button>
+      </div>
+      <p id="parts-display" style="font-size:11px; color:#9ca3af; margin-top:6px; text-align:right;">→ 1 part fiscale</p>
     </div>
     <div class="field">
       <label>Autres réductions d'impôt <span>(crédits, niches fiscales…)</span></label>
@@ -320,6 +339,42 @@ function parse(id) {
 
 function set(id, val) { document.getElementById(id).textContent = val; }
 
+// --- Situation familiale ---
+let statut = 'seul';
+let nbEnfants = 0;
+
+function setStatut(s) {
+  statut = s;
+  document.getElementById('btn-seul').style.background   = s === 'seul'   ? '#9E0000' : '#fff';
+  document.getElementById('btn-seul').style.color        = s === 'seul'   ? '#fff'    : '#666';
+  document.getElementById('btn-seul').style.borderColor  = s === 'seul'   ? '#9E0000' : '#e0e0e0';
+  document.getElementById('btn-couple').style.background  = s === 'couple' ? '#9E0000' : '#fff';
+  document.getElementById('btn-couple').style.color       = s === 'couple' ? '#fff'    : '#666';
+  document.getElementById('btn-couple').style.borderColor = s === 'couple' ? '#9E0000' : '#e0e0e0';
+  updatePartsDisplay();
+}
+
+function changeEnfants(delta) {
+  nbEnfants = Math.max(0, nbEnfants + delta);
+  document.getElementById('enfants-display').textContent = nbEnfants;
+  updatePartsDisplay();
+}
+
+function getParts() {
+  const base = statut === 'couple' ? 2 : 1;
+  if (nbEnfants === 0) return base;
+  if (nbEnfants === 1) return base + 0.5;
+  if (nbEnfants === 2) return base + 1;
+  // À partir du 3e enfant : +1 part par enfant supplémentaire
+  return base + 1 + (nbEnfants - 2);
+}
+
+function updatePartsDisplay() {
+  const p = getParts();
+  const label = p % 1 === 0 ? p : p.toString().replace('.', ',');
+  document.getElementById('parts-display').textContent = '→ ' + label + ' part' + (p > 1 ? 's' : '') + ' fiscale' + (p > 1 ? 's' : '');
+}
+
 function toggleAccordeon() {
   const content = document.getElementById("accordeon-content");
   const icon = document.getElementById("accordeon-icon");
@@ -338,7 +393,7 @@ function calculate() {
   const rev = parse("revenu");
   if (!rev || rev <= 0) { alert("Saisis un revenu valide."); return; }
 
-  const parts = parseFloat(document.getElementById("situation").value);
+  const parts = getParts();
   const red = parse("reductions");
 
   const revNetImp = rev * 0.9;
