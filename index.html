@@ -268,8 +268,9 @@
     <!-- Cotisation -->
     <div class="card">
       <p class="section-title">Ta cotisation optimale</p>
-      <div class="row"><span class="row-label">Objectif cotisation (1 % de ton revenu net)</span><span class="row-val" id="r-don1"></span></div>
+      <div class="row"><span class="row-label">Minimum recommandé (1 % de ton revenu net)</span><span class="row-val" id="r-don1"></span></div>
       <div class="row highlight"><span class="row-label">Cotisation à avancer à l'OCF (jusqu'à 3 %)</span><span class="row-val" id="r-donAvance"></span></div>
+      <p style="font-size:11px; color:#9ca3af; margin-top:6px; line-height:1.5;">Le 1 % est un minimum syndical — tu es libre de cotiser davantage jusqu'à 7 500 € (plafond légal). Plus tu cotises, plus l'État rembourse.</p>
       <div id="warning-contrainte" class="warning" style="display:none"></div>
       <div class="row sub"><span class="row-label">− Remboursement fiscal (66 % de la cotisation)</span><span class="row-val" id="r-reduction"></span></div>
       <div class="row sub"><span class="row-label">Impôt restant après réduction</span><span class="row-val" id="r-impotRestant"></span></div>
@@ -373,11 +374,11 @@ function calcImpotBrut(revNetImp, parts) {
 
 function calcDecote(impotBrut, parts) {
   if (parts >= 2) {
-    if (impotBrut >= 3277) return 0;
-    return Math.max(0, 1483 - 0.4525 * impotBrut);
+    if (impotBrut >= 5765) return 0;
+    return Math.max(0, 3421 - 0.4525 * impotBrut);
   } else {
-    if (impotBrut >= 1982) return 0;
-    return Math.max(0, 897 - 0.4525 * impotBrut);
+    if (impotBrut >= 3122) return 0;
+    return Math.max(0, 1840 - 0.4525 * impotBrut);
   }
 }
 
