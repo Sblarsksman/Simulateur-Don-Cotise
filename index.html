@@ -272,27 +272,32 @@
       <div class="row highlight"><span class="row-label">Cotisation à avancer à l'OCF (jusqu'à 3 %)</span><span class="row-val" id="r-donAvance"></span></div>
       <p style="font-size:11px; color:#9ca3af; margin-top:6px; line-height:1.5;">Le 1 % est un minimum syndical — tu es libre de cotiser davantage jusqu'à 7 500 € (plafond légal). Plus tu cotises, plus l'État rembourse.</p>
       <div id="warning-contrainte" class="warning" style="display:none"></div>
-      <div class="row sub"><span class="row-label">− Remboursement fiscal (66 % de la cotisation)</span><span class="row-val" id="r-reduction"></span></div>
-      <div class="row sub"><span class="row-label">Impôt restant après réduction</span><span class="row-val" id="r-impotRestant"></span></div>
+      <div id="row-reduction" class="row sub"><span class="row-label">− Remboursement fiscal (66 % de la cotisation)</span><span class="row-val" id="r-reduction"></span></div>
+      <div id="row-impot-restant" class="row sub"><span class="row-label">Impôt restant après réduction</span><span class="row-val" id="r-impotRestant"></span></div>
     </div>
 
     <!-- Récap -->
     <div class="card">
       <p class="section-title">Récapitulatif</p>
+
+      <!-- Cas 1 : minimum -->
+      <p style="font-size:11px; font-weight:700; color:#9ca3af; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:8px;">Option 1 — Cotisation minimum (1 %)</p>
       <div class="recap">
-        <div class="recap-box box-blue">
-          <p>Tu avances</p>
-          <strong id="r-recap-avance"></strong>
-        </div>
-        <div class="recap-box box-orange">
-          <p>L'État rembourse</p>
-          <strong id="r-recap-rembourse"></strong>
-        </div>
-        <div class="recap-box box-green">
-          <p>Coût réel net</p>
-          <strong id="r-recap-cout"></strong>
-        </div>
+        <div class="recap-box box-blue"><p>Tu avances</p><strong id="r-min-avance"></strong></div>
+        <div class="recap-box box-orange"><p>L'État rembourse</p><strong id="r-min-rembourse"></strong></div>
+        <div class="recap-box box-green"><p>Coût réel net</p><strong id="r-min-cout"></strong></div>
       </div>
+
+      <!-- Cas 2 : redirection totale -->
+      <p id="recap2-label" style="font-size:11px; font-weight:700; color:#9ca3af; text-transform:uppercase; letter-spacing:0.1em; margin-top:14px; margin-bottom:8px;">Option 2 — Redirection totale de l'impôt</p>
+      <div id="recap2" class="recap">
+        <div class="recap-box box-blue"><p>Tu avances</p><strong id="r-max-avance"></strong></div>
+        <div class="recap-box box-orange"><p>L'État rembourse</p><strong id="r-max-rembourse"></strong></div>
+        <div class="recap-box box-green"><p>Coût réel net</p><strong id="r-max-cout"></strong></div>
+      </div>
+      <p id="recap2-demo" style="font-size:11px; color:#9ca3af; margin-top:8px; line-height:1.6; background:#fafafa; border-radius:6px; padding:8px 10px;"></p>
+      <p id="recap2-note" style="font-size:11px; color:#9ca3af; margin-top:8px; line-height:1.5;">Au-delà, tu peux cotiser jusqu'à <strong>7 500 €</strong> si tu le souhaites — le remboursement restera plafonné à ton impôt total.</p>
+
       <p class="disclaimer">Simulation indicative — Barème 2026 sur revenus 2025.<br>Consulte un conseiller fiscal pour validation.</p>
     </div>
 
@@ -459,10 +464,11 @@ function calculate() {
 
   const don3pct = revNetApres * 0.03;
   const donAnnule = impotNet / 0.66;
-  const donAvance = Math.min(don3pct, donAnnule, 7500);
-  const reductionFiscale = donAvance * 0.66;
-  const coutReel = donAvance - reductionFiscale;
   const don1pct = revNetApres * 0.01;
+  const nonImposable = impotNet === 0;
+  const donAvance = nonImposable ? don1pct : Math.min(don3pct, donAnnule, 7500);
+  const reductionFiscale = nonImposable ? 0 : donAvance * 0.66;
+  const coutReel = donAvance - reductionFiscale;
   const impotRestant = Math.max(0, impotNet - reductionFiscale);
 
   set("r-revNetImp", fmt(revNetImp));
@@ -471,11 +477,38 @@ function calculate() {
   set("r-revNetApres", fmt(revNetApres));
   set("r-don1", fmt(don1pct));
   set("r-donAvance", fmt(donAvance));
-  set("r-reduction", "− " + fmt(reductionFiscale));
+  set("r-reduction", nonImposable ? "0 €" : "− " + fmt(reductionFiscale));
   set("r-impotRestant", fmt(impotRestant));
-  set("r-recap-avance", fmt(donAvance));
-  set("r-recap-rembourse", fmt(reductionFiscale));
-  set("r-recap-cout", fmt(coutReel));
+  // Cas 1 : cotisation recommandée (jusqu'à 3%)
+  const minRembourse = nonImposable ? 0 : reductionFiscale;
+  const minCout = donAvance - minRembourse;
+  set("r-min-avance", fmt(donAvance));
+  set("r-min-rembourse", fmt(minRembourse));
+  set("r-min-cout", fmt(minCout));
+
+  // Cas 2 : redirection totale (impôt / 0.66), plafonné à 7500
+  const recap2 = document.getElementById("recap2");
+  const recap2label = document.getElementById("recap2-label");
+  const recap2note = document.getElementById("recap2-note");
+  const recap2demo = document.getElementById("recap2-demo");
+  if (nonImposable) {
+    recap2.style.display = "none";
+    recap2label.style.display = "none";
+    recap2note.style.display = "none";
+    recap2demo.style.display = "none";
+  } else {
+    recap2.style.display = "grid";
+    recap2label.style.display = "block";
+    recap2note.style.display = "block";
+    recap2demo.style.display = "block";
+    const maxCot = Math.min(donAnnule, 7500);
+    const maxRembourse = impotNet;
+    const maxCout = maxCot - maxRembourse;
+    set("r-max-avance", fmt(maxCot));
+    set("r-max-rembourse", fmt(maxRembourse));
+    set("r-max-cout", fmt(maxCout));
+    recap2demo.innerHTML = fmt(impotNet) + " (ton impôt) ÷ 0,66 = <strong>" + fmt(maxCot) + " de cotisation</strong> → l'État te rembourse exactement l'équivalent de tout ton impôt.";
+  }
 
   // Décote
   const rowDecote = document.getElementById("row-decote");
@@ -487,11 +520,22 @@ function calculate() {
   if (red > 0) { rowRed.style.display = "flex"; set("r-red", "− " + fmt(red)); }
   else rowRed.style.display = "none";
 
-  // Contrainte
+  // Lignes remboursement et impôt restant : masquées si non imposable
+  document.getElementById("row-reduction").style.display = nonImposable ? "none" : "flex";
+  document.getElementById("row-impot-restant").style.display = nonImposable ? "none" : "flex";
+
+  // Contrainte / info non imposable
   const warn = document.getElementById("warning-contrainte");
-  if (donAvance >= 7499) { warn.style.display = "block"; warn.textContent = "⚠️ Cotisation plafonnée par le plafond légal de 7 500 €"; }
-  else if (donAnnule < don3pct) { warn.style.display = "block"; warn.textContent = "⚠️ Cotisation plafonnée par l'annulation totale de ton impôt"; }
-  else warn.style.display = "none";
+  if (nonImposable) {
+    warn.style.display = "block";
+    warn.textContent = "ℹ️ Tu n'es pas imposable : aucun remboursement fiscal possible. La cotisation minimum recommandée (1 % de ton revenu net) reste due à l'OCF.";
+  } else if (donAvance >= 7499) {
+    warn.style.display = "block"; warn.textContent = "⚠️ Cotisation plafonnée par le plafond légal de 7 500 €";
+  } else if (donAnnule < don3pct) {
+    warn.style.display = "block"; warn.textContent = "⚠️ Cotisation plafonnée par l'annulation totale de ton impôt";
+  } else {
+    warn.style.display = "none";
+  }
 
   // Bloc couple
   const blocCouple = document.getElementById("bloc-couple");
