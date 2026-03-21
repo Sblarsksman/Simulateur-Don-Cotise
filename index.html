@@ -379,11 +379,11 @@ function calcImpotBrut(revNetImp, parts) {
 
 function calcDecote(impotBrut, parts) {
   if (parts >= 2) {
-    if (impotBrut >= 5765) return 0;
-    return Math.max(0, 3421 - 0.4525 * impotBrut);
+    if (impotBrut >= 3277) return 0;
+    return Math.max(0, 1483 - 0.4525 * impotBrut);
   } else {
-    if (impotBrut >= 3122) return 0;
-    return Math.max(0, 1840 - 0.4525 * impotBrut);
+    if (impotBrut >= 1982) return 0;
+    return Math.max(0, 897 - 0.4525 * impotBrut);
   }
 }
 
