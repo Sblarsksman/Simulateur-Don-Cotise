@@ -502,12 +502,17 @@ function calculate() {
     recap2note.style.display = "block";
     recap2demo.style.display = "block";
     const maxCot = Math.min(donAnnule, 7500);
-    const maxRembourse = impotNet;
+    const estPlafonne = donAnnule > 7500;
+    const maxRembourse = Math.min(maxCot * 0.66, impotNet);
     const maxCout = maxCot - maxRembourse;
     set("r-max-avance", fmt(maxCot));
     set("r-max-rembourse", fmt(maxRembourse));
     set("r-max-cout", fmt(maxCout));
-    recap2demo.innerHTML = fmt(impotNet) + " (ton impôt) ÷ 0,66 = <strong>" + fmt(maxCot) + " de cotisation</strong> → l'État te rembourse exactement l'équivalent de tout ton impôt.";
+    if (estPlafonne) {
+      recap2demo.innerHTML = "Cotisation plafonnée à <strong>7 500 €</strong> (plafond légal). L'État rembourse 66 % de ta cotisation, soit <strong>" + fmt(maxRembourse) + "</strong> — ton impôt restant s'élève à " + fmt(impotNet - maxRembourse) + ".";
+    } else {
+      recap2demo.innerHTML = fmt(impotNet) + " (ton impôt) ÷ 0,66 = <strong>" + fmt(maxCot) + " de cotisation</strong> → l'État te rembourse exactement l'équivalent de tout ton impôt.";
+    }
   }
 
   // Décote
