@@ -107,6 +107,63 @@
     }
     button:hover { background: #7a0000; }
 
+    /* Mode selector */
+    .mode-selector {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 20px;
+    }
+    .mode-btn {
+      flex: 1;
+      padding: 9px 6px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      border: 2px solid #e0e0e0;
+      background: #fff;
+      color: #666;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+      text-align: center;
+      line-height: 1.3;
+    }
+    .mode-btn.active {
+      background: #9E0000;
+      color: #fff;
+      border-color: #9E0000;
+    }
+    .mode-btn:hover:not(.active) { background: #7a0000; color: #fff; border-color: #7a0000; }
+
+    /* Mode hint box */
+    .mode-hint {
+      background: #fdf9f0;
+      border: 1px solid #f0e0b0;
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-size: 12px;
+      color: #7a6000;
+      margin-bottom: 18px;
+      line-height: 1.5;
+    }
+    .mode-hint strong { color: #5a4000; }
+
+    /* Estimation badge */
+    .estimation-badge {
+      display: inline-block;
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      color: #c2410c;
+      padding: 2px 6px;
+      margin-left: 6px;
+      vertical-align: middle;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
     .row {
       display: flex;
       justify-content: space-between;
@@ -159,7 +216,7 @@
     }
 
     #results { display: none; }
-</style>
+  </style>
 </head>
 <body>
 <div class="container">
@@ -202,14 +259,57 @@
   <!-- Formulaire -->
   <div class="card">
     <p class="section-title">Calcule ta cotisation</p>
-    <div class="field">
-      <label>Revenu brut annuel <span>(avant abattement 10 %)</span></label>
+
+    <!-- Sélecteur de mode -->
+    <div style="margin-bottom:6px;">
+      <label style="margin-bottom:8px;">Source de tes données fiscales</label>
+      <div class="mode-selector">
+        <button type="button" class="mode-btn active" id="mode-btn-1" onclick="setMode(1)">
+          📊 Estimation<br><span style="font-weight:400; font-size:10px;">revenu brut</span>
+        </button>
+        <button type="button" class="mode-btn" id="mode-btn-2" onclick="setMode(2)">
+          📄 Fiche de paie<br><span style="font-weight:400; font-size:10px;">déc. N−1</span>
+        </button>
+        <button type="button" class="mode-btn" id="mode-btn-3" onclick="setMode(3)">
+          📋 Avis d'imposition<br><span style="font-weight:400; font-size:10px;">valeurs exactes</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Hint contextuel -->
+    <div id="mode-hint" class="mode-hint">
+      <strong>Mode estimation :</strong> Tu saisis ton salaire brut annuel. L'outil applique l'abattement de 10 % et calcule l'impôt via le barème. Résultat approximatif.
+    </div>
+
+    <!-- MODE 1 & 2 : champ revenu -->
+    <div id="field-revenu" class="field">
+      <label id="label-revenu">Revenu brut annuel <span>(avant abattement 10 %)</span></label>
       <div class="input-wrap">
         <input type="text" id="revenu" placeholder="Ex : 35 000" />
         <span class="unit">€</span>
       </div>
     </div>
-    <div class="field">
+
+    <!-- MODE 3 : champ net imposable -->
+    <div id="field-net-imposable" class="field" style="display:none;">
+      <label>Revenu net imposable <span>(case « Revenu net imposable » de l'avis)</span></label>
+      <div class="input-wrap">
+        <input type="text" id="net-imposable" placeholder="Ex : 28 000" />
+        <span class="unit">€</span>
+      </div>
+    </div>
+
+    <!-- MODE 3 : champ impôt net -->
+    <div id="field-impot-net" class="field" style="display:none;">
+      <label>Impôt net à payer <span>(case « Impôt net » de l'avis)</span></label>
+      <div class="input-wrap">
+        <input type="text" id="impot-net-saisi" placeholder="Ex : 2 100" />
+        <span class="unit">€</span>
+      </div>
+    </div>
+
+    <!-- Situation familiale (modes 1 & 2) -->
+    <div id="field-familiale" class="field">
       <label>Situation familiale</label>
       <div style="display:flex; gap:8px; margin-bottom:12px;">
         <button type="button" id="btn-seul" onclick="setStatut('seul')" style="
@@ -241,13 +341,33 @@
       </div>
       <p id="parts-display" style="font-size:11px; color:#9ca3af; margin-top:6px; text-align:right;">→ 1 part fiscale</p>
     </div>
-    <div class="field">
+
+    <!-- Autres réductions (modes 1 & 2 uniquement) -->
+    <div id="field-reductions" class="field">
       <label>Autres réductions d'impôt <span>(crédits, niches fiscales…)</span></label>
       <div class="input-wrap">
         <input type="text" id="reductions" placeholder="0 si aucune" />
         <span class="unit">€</span>
       </div>
     </div>
+
+    <!-- Situation familiale mode 3 (couple uniquement, pour bloc couple) -->
+    <div id="field-familiale-3" class="field" style="display:none;">
+      <label>Situation familiale</label>
+      <div style="display:flex; gap:8px;">
+        <button type="button" id="btn-seul-3" onclick="setStatut3('seul')" style="
+          flex:1; padding:10px 6px; border-radius:6px; font-size:12px; font-weight:700;
+          border:2px solid #9E0000; background:#9E0000; color:#fff;
+          cursor:pointer; transition:all 0.2s; font-family:inherit;
+        ">Seul(e)</button>
+        <button type="button" id="btn-couple-3" onclick="setStatut3('couple')" style="
+          flex:1; padding:10px 6px; border-radius:6px; font-size:12px; font-weight:700;
+          border:2px solid #e0e0e0; background:#fff; color:#666;
+          cursor:pointer; transition:all 0.2s; font-family:inherit;
+        ">Marié(e) / Pacsé(e)</button>
+      </div>
+    </div>
+
     <button onclick="calculate()" style="margin-top:10px;">Calculer ma cotisation optimale</button>
   </div>
 
@@ -256,9 +376,9 @@
 
     <!-- Situation fiscale -->
     <div class="card">
-      <p class="section-title">Ta situation fiscale</p>
-      <div class="row"><span class="row-label">Revenu net imposable (après abattement 10 %)</span><span class="row-val" id="r-revNetImp"></span></div>
-      <div class="row sub"><span class="row-label">Impôt brut (barème progressif)</span><span class="row-val" id="r-impotBrut"></span></div>
+      <p class="section-title">Ta situation fiscale <span id="badge-estimation"></span></p>
+      <div id="row-revNetImp" class="row"><span class="row-label">Revenu net imposable</span><span class="row-val" id="r-revNetImp"></span></div>
+      <div id="row-impotBrut" class="row sub"><span class="row-label">Impôt brut (barème progressif)</span><span class="row-val" id="r-impotBrut"></span></div>
       <div class="row sub" id="row-decote" style="display:none"><span class="row-label">− Décote</span><span class="row-val" id="r-decote"></span></div>
       <div class="row sub" id="row-red" style="display:none"><span class="row-label">− Autres réductions</span><span class="row-val" id="r-red"></span></div>
       <div class="row bold"><span class="row-label">Impôt net à payer</span><span class="row-val" id="r-impotNet"></span></div>
@@ -399,8 +519,58 @@ function parse(id) {
 
 function set(id, val) { document.getElementById(id).textContent = val; }
 
+// --- Mode de saisie ---
+let currentMode = 1; // 1 = estimation, 2 = fiche de paie, 3 = avis d'imposition
+
+const MODE_HINTS = {
+  1: '<strong>Mode estimation :</strong> Tu saisis ton salaire brut annuel. L\'outil applique l\'abattement de 10 % et calcule l\'impôt via le barème. Résultat approximatif.',
+  2: '<strong>Mode fiche de paie (déc. N−1) :</strong> Saisis la colonne <strong>« Net imposable — Cumul annuel »</strong> de ta fiche de décembre. Base de calcul exacte, impôt estimé via le barème.',
+  3: '<strong>Mode avis d\'imposition :</strong> Tu saisis directement les valeurs de ton avis. Résultat <strong>parfaitement exact</strong>, aucun calcul fiscal effectué.'
+};
+
+function setMode(m) {
+  currentMode = m;
+
+  // Boutons
+  [1,2,3].forEach(i => {
+    document.getElementById('mode-btn-' + i).classList.toggle('active', i === m);
+  });
+
+  // Hint
+  document.getElementById('mode-hint').innerHTML = MODE_HINTS[m];
+
+  // Champs
+  const isMod3 = (m === 3);
+
+  // Champ revenu (modes 1 & 2)
+  document.getElementById('field-revenu').style.display = isMod3 ? 'none' : 'block';
+
+  // Label du champ revenu selon le mode
+  const labelRevenu = document.getElementById('label-revenu');
+  if (m === 1) {
+    labelRevenu.innerHTML = 'Revenu brut annuel <span>(avant abattement 10 %)</span>';
+    document.getElementById('revenu').placeholder = 'Ex : 35 000';
+  } else if (m === 2) {
+    labelRevenu.innerHTML = 'Net imposable — Cumul annuel <span>(colonne « Net imposable » de ta fiche de déc.)</span>';
+    document.getElementById('revenu').placeholder = 'Ex : 28 000';
+  }
+
+  // Champs mode 3
+  document.getElementById('field-net-imposable').style.display = isMod3 ? 'block' : 'none';
+  document.getElementById('field-impot-net').style.display = isMod3 ? 'block' : 'none';
+
+  // Situation familiale
+  document.getElementById('field-familiale').style.display = isMod3 ? 'none' : 'block';
+  document.getElementById('field-familiale-3').style.display = isMod3 ? 'block' : 'none';
+  document.getElementById('field-reductions').style.display = isMod3 ? 'none' : 'block';
+
+  // Reset résultats
+  document.getElementById('results').style.display = 'none';
+}
+
 // --- Situation familiale ---
 let statut = 'seul';
+let statut3 = 'seul';
 let nbEnfants = 0;
 
 function setStatut(s) {
@@ -414,6 +584,16 @@ function setStatut(s) {
   updatePartsDisplay();
 }
 
+function setStatut3(s) {
+  statut3 = s;
+  document.getElementById('btn-seul-3').style.background   = s === 'seul'   ? '#9E0000' : '#fff';
+  document.getElementById('btn-seul-3').style.color        = s === 'seul'   ? '#fff'    : '#666';
+  document.getElementById('btn-seul-3').style.borderColor  = s === 'seul'   ? '#9E0000' : '#e0e0e0';
+  document.getElementById('btn-couple-3').style.background  = s === 'couple' ? '#9E0000' : '#fff';
+  document.getElementById('btn-couple-3').style.color       = s === 'couple' ? '#fff'    : '#666';
+  document.getElementById('btn-couple-3').style.borderColor = s === 'couple' ? '#9E0000' : '#e0e0e0';
+}
+
 function changeEnfants(delta) {
   nbEnfants = Math.max(0, nbEnfants + delta);
   document.getElementById('enfants-display').textContent = nbEnfants;
@@ -425,7 +605,6 @@ function getParts() {
   if (nbEnfants === 0) return base;
   if (nbEnfants === 1) return base + 0.5;
   if (nbEnfants === 2) return base + 1;
-  // À partir du 3e enfant : +1 part par enfant supplémentaire
   return base + 1 + (nbEnfants - 2);
 }
 
@@ -450,43 +629,112 @@ function toggleAccordeon() {
 }
 
 function calculate() {
-  const rev = parse("revenu");
-  if (!rev || rev <= 0) { alert("Saisis un revenu valide."); return; }
+  let revNetImp, impotBrut, decote, impotNet, red, parts, isEstimation;
 
-  const parts = getParts();
-  const red = parse("reductions");
+  if (currentMode === 1) {
+    // MODE 1 : revenu brut → abattement 10 %
+    const rev = parse("revenu");
+    if (!rev || rev <= 0) { alert("Saisis un revenu valide."); return; }
+    parts = getParts();
+    red = parse("reductions");
+    revNetImp = rev * 0.9;
+    impotBrut = calcImpotBrut(revNetImp, parts);
+    decote = calcDecote(impotBrut, parts);
+    impotNet = Math.max(0, impotBrut - decote - red);
+    isEstimation = true;
 
-  const revNetImp = rev * 0.9;
-  const impotBrut = calcImpotBrut(revNetImp, parts);
-  const decote = calcDecote(impotBrut, parts);
-  const impotNet = Math.max(0, impotBrut - decote - red);
-  const revNetApres = rev - impotNet;
+  } else if (currentMode === 2) {
+    // MODE 2 : net imposable direct → pas d'abattement
+    const netImp = parse("revenu");
+    if (!netImp || netImp <= 0) { alert("Saisis un revenu net imposable valide."); return; }
+    parts = getParts();
+    red = parse("reductions");
+    revNetImp = netImp;
+    impotBrut = calcImpotBrut(revNetImp, parts);
+    decote = calcDecote(impotBrut, parts);
+    impotNet = Math.max(0, impotBrut - decote - red);
+    isEstimation = true;
 
+  } else {
+    // MODE 3 : valeurs directes de l'avis
+    revNetImp = parse("net-imposable");
+    impotNet = parse("impot-net-saisi");
+    if (!revNetImp || revNetImp <= 0) { alert("Saisis un revenu net imposable valide."); return; }
+    if (impotNet < 0) { alert("Saisis un impôt net valide."); return; }
+    impotBrut = null;
+    decote = null;
+    red = 0;
+    parts = statut3 === 'couple' ? 2 : 1;
+    isEstimation = false;
+  }
+
+  // Revenu net après impôt
+  const revNetApres = revNetImp - impotNet;
+
+  // Calculs cotisation
   const don3pct = revNetApres * 0.03;
   const donAnnule = impotNet / 0.66;
   const don1pct = revNetApres * 0.01;
   const nonImposable = impotNet === 0;
   const donAvance = nonImposable ? don1pct : Math.min(don3pct, donAnnule, 7500);
   const reductionFiscale = nonImposable ? 0 : donAvance * 0.66;
-  const coutReel = donAvance - reductionFiscale;
   const impotRestant = Math.max(0, impotNet - reductionFiscale);
 
+  // --- Affichage situation fiscale ---
   set("r-revNetImp", fmt(revNetImp));
-  set("r-impotBrut", fmt(impotBrut));
+
+  // Lignes barème (modes 1 & 2 seulement)
+  const rowImpotBrut = document.getElementById('row-impotBrut');
+  if (currentMode !== 3 && impotBrut !== null) {
+    rowImpotBrut.style.display = 'flex';
+    set("r-impotBrut", fmt(impotBrut));
+  } else {
+    rowImpotBrut.style.display = 'none';
+  }
+
   set("r-impotNet", fmt(impotNet));
   set("r-revNetApres", fmt(revNetApres));
+
+  // Badge estimation
+  const badge = document.getElementById('badge-estimation');
+  if (isEstimation) {
+    badge.innerHTML = '<span class="estimation-badge">Estimation</span>';
+  } else {
+    badge.innerHTML = '';
+  }
+
+  // Décote
+  const rowDecote = document.getElementById("row-decote");
+  if (currentMode !== 3 && decote !== null && decote > 0) {
+    rowDecote.style.display = "flex";
+    set("r-decote", "− " + fmt(decote));
+  } else {
+    rowDecote.style.display = "none";
+  }
+
+  // Autres réductions
+  const rowRed = document.getElementById("row-red");
+  if (currentMode !== 3 && red > 0) {
+    rowRed.style.display = "flex";
+    set("r-red", "− " + fmt(red));
+  } else {
+    rowRed.style.display = "none";
+  }
+
+  // --- Affichage cotisation ---
   set("r-don1", fmt(don1pct));
   set("r-donAvance", fmt(donAvance));
   set("r-reduction", nonImposable ? "0 €" : "− " + fmt(reductionFiscale));
   set("r-impotRestant", fmt(impotRestant));
-  // Cas 1 : cotisation recommandée (jusqu'à 3%)
+
+  // Récap option 1
   const minRembourse = nonImposable ? 0 : reductionFiscale;
   const minCout = donAvance - minRembourse;
   set("r-min-avance", fmt(donAvance));
   set("r-min-rembourse", fmt(minRembourse));
   set("r-min-cout", fmt(minCout));
 
-  // Cas 2 : redirection totale (impôt / 0.66), plafonné à 7500
+  // Récap option 2
   const recap2 = document.getElementById("recap2");
   const recap2label = document.getElementById("recap2-label");
   const recap2note = document.getElementById("recap2-note");
@@ -515,16 +763,6 @@ function calculate() {
     }
   }
 
-  // Décote
-  const rowDecote = document.getElementById("row-decote");
-  if (decote > 0) { rowDecote.style.display = "flex"; set("r-decote", "− " + fmt(decote)); }
-  else rowDecote.style.display = "none";
-
-  // Autres réductions
-  const rowRed = document.getElementById("row-red");
-  if (red > 0) { rowRed.style.display = "flex"; set("r-red", "− " + fmt(red)); }
-  else rowRed.style.display = "none";
-
   // Lignes remboursement et impôt restant : masquées si non imposable
   document.getElementById("row-reduction").style.display = nonImposable ? "none" : "flex";
   document.getElementById("row-impot-restant").style.display = nonImposable ? "none" : "flex";
@@ -544,7 +782,8 @@ function calculate() {
 
   // Bloc couple
   const blocCouple = document.getElementById("bloc-couple");
-  if (statut === 'couple') {
+  const coupleActif = (currentMode === 3 ? statut3 : statut) === 'couple';
+  if (coupleActif) {
     blocCouple.style.display = "block";
     document.getElementById("r-couple-part").textContent = fmt(donAvance / 2);
     document.getElementById("r-couple-part2").textContent = fmt(donAvance / 2);
